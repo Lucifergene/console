@@ -179,5 +179,35 @@
     "flags": {
       "required": ["SHIPWRIGHT_BUILDRUN"]
     }
+  },
+  {
+    "type": "console.topology/decorator/provider",
+    "properties": {
+      "id": "shipwright-buildruns-decorator",
+      "priority": 100,
+      "quadrant": "lowerLeft",
+      "decorator": { "$codeRef": "topology.getShipWrightBuildDecorator" }
+    },
+    "flags": {
+      "required": ["SHIPWRIGHT_BUILDRUN"]
+    }
+  },
+  {
+    "type": "console.topology/data/factory",
+    "properties": {
+      "id": "shipwright-topology-model-factory",
+      "priority": 800,
+      "resources": {
+        "builds": {
+          "model": { "kind": "Build", "group": "shipwright.io", "version": "v1alpha1" },
+          "opts": { "isList": true, "optional": true, "namespaced": false }
+        },
+        "buildRuns": {
+          "model": { "kind": "BuildRun", "group": "shipwright.io", "version": "v1alpha1" },
+          "opts": { "isList": true, "optional": true, "namespaced": false }
+        }
+      },
+      "getDataModelReconciler": { "$codeRef": "topology.getShipwrightDataModelReconcilor" }
+    }
   }
 ]
