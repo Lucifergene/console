@@ -193,6 +193,20 @@
     }
   },
   {
+    "type": "console.topology/details/tab-section",
+    "properties": {
+      "id": "topology-tab-section-shipwright-overview",
+      "tab": "topology-side-bar-tab-resource",
+      "insertAfter": "topology-tab-section-pods-overview",
+      "provider": {
+        "$codeRef": "topology.useBuildSideBarTabSection"
+      }
+    },
+    "flags": {
+      "required": ["SHIPWRIGHT_BUILDRUN"]
+    }
+  },
+  {
     "type": "console.topology/data/factory",
     "properties": {
       "id": "shipwright-topology-model-factory",
@@ -208,6 +222,9 @@
         }
       },
       "getDataModelReconciler": { "$codeRef": "topology.getShipwrightDataModelReconcilor" }
+    },
+    "flags": {
+      "required": ["SHIPWRIGHT_BUILDRUN"]
     }
   }
 ]
