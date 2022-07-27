@@ -1,4 +1,4 @@
-@odc-4981
+@shipwright
 Feature: Shipwright build details page
               As a user, I want check my Shipwright Build and see all related BuildRuns in a second tab.
 
@@ -76,3 +76,5 @@ Feature: Shipwright build details page
               And user has a failed build run
              When user clicks on Failed Status
              Then user will see pop up with error message
+
+             
