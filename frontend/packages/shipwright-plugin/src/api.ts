@@ -1,10 +1,11 @@
 import { k8sCreateResource } from '@console/dynamic-plugin-sdk/src/utils/k8s';
-import { BUILDRUN_TO_BUILD_REFERENCE_LABEL } from './const';
+import { K8sResourceKind } from '@console/internal/module/k8s';
+import { BUILDRUN_TO_BUILD_REFERENCE_LABEL, BUILDRUN_TO_RESOURCE_MAP_LABEL } from './const';
 import { BuildRunModel } from './models';
 import { Build, BuildRun } from './types';
 
 /** Create a new BuildRun for a given Build to start it. */
-export const startBuild = async (build: Build): Promise<BuildRun> => {
+export const startBuild = async (build: Build, resource?: K8sResourceKind): Promise<BuildRun> => {
   const newBuildRunData: BuildRun = {
     apiVersion: 'shipwright.io/v1alpha1',
     kind: 'BuildRun',
@@ -13,6 +14,12 @@ export const startBuild = async (build: Build): Promise<BuildRun> => {
       generateName: `${build.metadata.name}-`,
       labels: {
         [BUILDRUN_TO_BUILD_REFERENCE_LABEL]: build.metadata.name,
+        ...(resource
+          ? {
+              [BUILDRUN_TO_RESOURCE_MAP_LABEL]:
+                resource.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL],
+            }
+          : {}),
       },
     },
     spec: {
@@ -46,6 +53,7 @@ export const canRerunBuildRun = (buildRun: BuildRun): boolean => {
 export const rerunBuildRun = async (buildRun: BuildRun): Promise<BuildRun> => {
   const buildRefName = buildRun.spec?.buildRef?.name;
   const buildSpec = buildRun.spec?.buildSpec;
+  const resourceMapLabel = buildRun.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL];
 
   if (buildRefName) {
     const generateName = buildRun.metadata.generateName || `${buildRefName}-`;
@@ -57,6 +65,7 @@ export const rerunBuildRun = async (buildRun: BuildRun): Promise<BuildRun> => {
         generateName,
         labels: {
           [BUILDRUN_TO_BUILD_REFERENCE_LABEL]: buildRefName,
+          ...(resourceMapLabel ? { [BUILDRUN_TO_RESOURCE_MAP_LABEL]: resourceMapLabel } : {}),
         },
       },
       spec: {
@@ -73,12 +82,16 @@ export const rerunBuildRun = async (buildRun: BuildRun): Promise<BuildRun> => {
 
   if (buildSpec) {
     const generateName = buildRun.metadata.generateName || `${buildRun.metadata.name}-`;
+
     const newBuildRunData: BuildRun = {
       apiVersion: 'shipwright.io/v1alpha1',
       kind: 'BuildRun',
       metadata: {
         namespace: buildRun.metadata.namespace,
         generateName,
+        ...(resourceMapLabel
+          ? { labels: { [BUILDRUN_TO_RESOURCE_MAP_LABEL]: resourceMapLabel } }
+          : {}),
       },
       spec: {
         buildSpec,

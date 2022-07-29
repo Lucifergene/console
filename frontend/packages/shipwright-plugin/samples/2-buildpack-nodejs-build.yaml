@@ -1,3 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: build-examples
+  name: sw-deployment-buildpack-nodejs-build
+  labels:
+    app.kubernetes.io/part-of: sw-deployment-buildpack-nodejs-build
+spec:
+  selector:
+    matchLabels:
+      app: sw-deployment-buildpack-nodejs-build
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sw-deployment-buildpack-nodejs-build
+    spec:
+      containers:
+        - name: container
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/build-examples/sw-deployment-example:latest
+---
 apiVersion: shipwright.io/v1alpha1
 kind: Build
 metadata:
@@ -18,15 +40,8 @@ kind: BuildRun
 metadata:
   namespace: build-examples
   generateName: buildpack-nodejs-build-
-spec:
-  buildRef:
-    name: buildpack-nodejs-build
----
-apiVersion: shipwright.io/v1alpha1
-kind: BuildRun
-metadata:
-  namespace: build-examples
-  generateName: buildpack-nodejs-build-
+  labels:
+    app.kubernetes.io/part-of: sw-deployment-buildpack-nodejs-build
 spec:
   buildRef:
     name: buildpack-nodejs-build

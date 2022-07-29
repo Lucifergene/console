@@ -5,15 +5,17 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { impersonateStateToProps } from '@console/dynamic-plugin-sdk';
 import { resourcePathFromModel } from '@console/internal/components/utils';
+import { K8sResourceKind } from '@console/internal/module/k8s';
 import { Status } from '@console/shared';
 import { BuildDecoratorBubble } from '@console/topology/src/components/graph-view';
 import { BuildRunModel } from '../../models';
 import { Build, BuildRun } from '../../types';
-import { getLatestBuildRunStatus } from '../../utils';
+import { getLatestBuildRunStatusforDeployment } from '../../utils';
 
 type BuildRunDecoratorProps = {
   buildRuns: BuildRun[];
   build: Build[];
+  resource: K8sResourceKind;
   radius: number;
   x: number;
   y: number;
@@ -29,12 +31,13 @@ type StateProps = {
 
 export const ConnectedBuildRunDecorator: React.FC<BuildRunDecoratorProps & StateProps> = ({
   buildRuns,
+  resource,
   radius,
   x,
   y,
 }) => {
   const { t } = useTranslation();
-  const { latestBuildRun, status } = getLatestBuildRunStatus(buildRuns);
+  const { latestBuildRun, status } = getLatestBuildRunStatusforDeployment(buildRuns, resource);
 
   const statusIcon = <Status status={status} iconOnly noTooltip />;
 

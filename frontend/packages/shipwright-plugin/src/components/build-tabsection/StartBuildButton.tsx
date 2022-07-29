@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { impersonateStateToProps } from '@console/dynamic-plugin-sdk';
 import { errorModal } from '@console/internal/components/modals';
 import { useAccessReview } from '@console/internal/components/utils';
-import { AccessReviewResourceAttributes } from '@console/internal/module/k8s';
+import { AccessReviewResourceAttributes, K8sResourceKind } from '@console/internal/module/k8s';
 import { startBuild } from '../../api';
 import { BuildRunModel } from '../../models';
 import { Build } from '../../types';
@@ -20,17 +20,19 @@ type StateProps = {
 
 type StartBuildButtonProps = {
   build: Build;
+  resource: K8sResourceKind;
   namespace: string;
 };
 
 const StartBuildButton: React.FC<StartBuildButtonProps & StateProps> = ({
   build,
+  resource,
   namespace,
   impersonate,
 }) => {
   const { t } = useTranslation();
   const onClick = () => {
-    startBuild(build).catch((err) => {
+    startBuild(build, resource).catch((err) => {
       const error = err.message;
       errorModal({ error });
     });

@@ -1,3 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: build-examples
+  name: sw-deployment-kaniko-golang-build
+  labels:
+    app.kubernetes.io/part-of: sw-deployment-kaniko-golang-build
+spec:
+  selector:
+    matchLabels:
+      app: sw-deployment-kaniko-golang-build
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sw-deployment-kaniko-golang-build
+    spec:
+      containers:
+        - name: container
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/build-examples/sw-deployment-example:latest
+---
 apiVersion: shipwright.io/v1alpha1
 kind: Build
 metadata:
@@ -19,15 +41,9 @@ kind: BuildRun
 metadata:
   namespace: build-examples
   generateName: kaniko-golang-build-
+  labels:
+    app.kubernetes.io/part-of: sw-deployment-kaniko-golang-build
 spec:
   buildRef:
     name: kaniko-golang-build
----
-apiVersion: shipwright.io/v1alpha1
-kind: BuildRun
-metadata:
-  namespace: build-examples
-  generateName: kaniko-golang-build-
-spec:
-  buildRef:
-    name: kaniko-golang-build
+

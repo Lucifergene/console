@@ -5,25 +5,27 @@ import { connect } from 'react-redux';
 import { impersonateStateToProps } from '@console/dynamic-plugin-sdk';
 import { errorModal } from '@console/internal/components/modals';
 import { useAccessReview } from '@console/internal/components/utils';
-import { AccessReviewResourceAttributes } from '@console/internal/module/k8s';
+import { AccessReviewResourceAttributes, K8sResourceKind } from '@console/internal/module/k8s';
 import { canRerunBuildRun, rerunBuildRun } from '../../api';
 import { BuildRunModel } from '../../models';
 import { BuildRun } from '../../types';
-import { getLatestBuildRunStatus } from '../../utils';
+import { getLatestBuildRunStatusforDeployment } from '../../utils';
 
 type TriggerLastBuildButtonProps = {
   buildRuns: BuildRun[];
+  resource: K8sResourceKind;
   namespace: string;
   impersonate?;
 };
 
 const TriggerLastBuildButton: React.FC<TriggerLastBuildButtonProps> = ({
   buildRuns,
+  resource,
   namespace,
   impersonate,
 }) => {
   const { t } = useTranslation();
-  const { latestBuildRun } = getLatestBuildRunStatus(buildRuns);
+  const { latestBuildRun } = getLatestBuildRunStatusforDeployment(buildRuns, resource);
 
   const onClick = () => {
     rerunBuildRun(latestBuildRun).catch((err) => {

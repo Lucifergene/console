@@ -10,7 +10,7 @@ export const getShipWrightBuildDecorator = (
 ) => {
   const overviewItem = element.getData()?.resources;
 
-  const { builds, buildRuns } = overviewItem || {};
+  const { builds, buildRuns, obj } = overviewItem || {};
 
   if (!buildRuns) {
     return null;
@@ -24,6 +24,7 @@ export const getShipWrightBuildDecorator = (
       y={y}
       build={builds}
       buildRuns={buildRuns}
+      resource={obj}
     />
   );
 };

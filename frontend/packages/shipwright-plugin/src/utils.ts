@@ -1,4 +1,6 @@
+import { K8sResourceKind } from '@console/internal/module/k8s';
 import { getBuildRunStatusProps } from './components/buildrun-status/BuildRunStatus';
+import { BUILDRUN_TO_RESOURCE_MAP_LABEL } from './const';
 import { BuildRun, ComputedBuildRunStatus as runStatus } from './types';
 
 export type LatestBuildRunStatus = {
@@ -14,6 +16,7 @@ export const getLatestRun = (runs: Runs, field: string): BuildRun => {
   if (!runs || !runs.data || !(runs.data.length > 0) || !field) {
     return null;
   }
+
   let latestRun = runs.data[0];
   if (field === 'creationTimestamp') {
     for (let i = 1; i < runs.data.length; i++) {
@@ -41,12 +44,21 @@ export const getLatestRun = (runs: Runs, field: string): BuildRun => {
   return latestRun;
 };
 
-export const getLatestBuildRunStatus = (buildRuns: BuildRun[]): LatestBuildRunStatus => {
-  if (!buildRuns || buildRuns.length === 0) {
+export const getLatestBuildRunStatusforDeployment = (
+  buildRuns: BuildRun[],
+  resource: K8sResourceKind,
+): LatestBuildRunStatus => {
+  const buildRunsforDeployment = buildRuns.filter(
+    (run) =>
+      run.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL] ===
+      resource.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL],
+  );
+
+  if (!buildRunsforDeployment || buildRunsforDeployment.length === 0) {
     return { latestBuildRun: null, status: runStatus.UNKNOWN };
   }
 
-  const latestBuildRun = getLatestRun({ data: buildRuns }, 'creationTimestamp');
+  const latestBuildRun = getLatestRun({ data: buildRunsforDeployment }, 'creationTimestamp');
 
   if (!latestBuildRun) {
     return { latestBuildRun: null, status: runStatus.UNKNOWN };

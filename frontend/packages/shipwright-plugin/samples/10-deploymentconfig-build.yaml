@@ -1,0 +1,58 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  namespace: build-examples
+  name: sw-deploymentconfig-example
+  labels:
+    app.kubernetes.io/part-of: sw-deploymentconfig-app
+spec:
+  selector:
+    app: sw-deploymentconfig-example
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sw-deploymentconfig-example
+    spec:
+      containers:
+        - name: container
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/build-examples/sw-deploymentconfig-example:latest
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - container
+        from:
+          kind: ImageStreamTag
+          namespace: build-examples
+          name: 'sw-deploymentconfig-example:latest'
+---
+apiVersion: shipwright.io/v1alpha1
+kind: Build
+metadata:
+  namespace: build-examples
+  name: sw-deploymentconfig-example-build
+spec:
+  source:
+    url: https://github.com/shipwright-io/sample-nodejs
+    contextDir: source-build
+  strategy:
+    name: buildpacks-v3
+    kind: BuildStrategy
+  output:
+    image: image-registry.openshift-image-registry.svc:5000/build-examples/sw-deploymentconfig-example
+---
+apiVersion: shipwright.io/v1alpha1
+kind: BuildRun
+metadata:
+  namespace: build-examples
+  generateName: sw-deploymentconfig-example-buildrun-
+  labels:
+    app.kubernetes.io/part-of: sw-deploymentconfig-app
+spec:
+  buildRef:
+    name: sw-deploymentconfig-example-build
+

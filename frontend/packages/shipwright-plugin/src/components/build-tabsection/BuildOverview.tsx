@@ -10,6 +10,7 @@ import {
 } from '@console/internal/components/utils';
 import { referenceForModel } from '@console/internal/module/k8s/k8s';
 import { OverviewItem } from '@console/shared';
+import { BUILDRUN_TO_RESOURCE_MAP_LABEL } from '../../const';
 import { BuildModel } from '../../models';
 import { Build, BuildRun } from '../../types';
 import BuildRunItem from './BuildRunItem';
@@ -25,8 +26,14 @@ type BuildsOverviewProps = {
   };
 };
 
-const BuildsOverview: React.FC<BuildsOverviewProps> = ({ item: { builds, buildRuns } }) => {
+const BuildsOverview: React.FC<BuildsOverviewProps> = ({ item: { builds, buildRuns, obj } }) => {
   const { t } = useTranslation();
+  const buildRunsforResource = _.filter(buildRuns, (buildRun) => {
+    return (
+      buildRun.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL] ===
+      obj.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL]
+    );
+  });
 
   if (!builds || !builds.length) {
     return null;
@@ -34,10 +41,24 @@ const BuildsOverview: React.FC<BuildsOverviewProps> = ({ item: { builds, buildRu
 
   return (
     <>
-      <SidebarSectionHeading text={t('shipwright-plugin~BuildRuns')} />
+      <SidebarSectionHeading text={t('shipwright-plugin~BuildRuns')}>
+        {buildRunsforResource.length > MAX_VISIBLE && (
+          <Link
+            className="sidebar__section-view-all"
+            to={`/k8s/ns/${obj.metadata?.namespace}/shipwright.io~v1alpha1~BuildRun?labels=${BUILDRUN_TO_RESOURCE_MAP_LABEL}=${obj.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL]}`}
+          >
+            {t('shipwright-plugin~View all {{buildRunsLength}}', {
+              buildRunsLength: buildRunsforResource.length,
+            })}
+          </Link>
+        )}
+      </SidebarSectionHeading>
       {builds.map((build) => {
         const buildRunsforBuild = buildRuns.filter(
-          (buildRun) => buildRun.spec.buildRef.name === build.metadata.name,
+          (buildRun) =>
+            buildRun.spec.buildRef.name === build.metadata.name &&
+            buildRun.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL] ===
+              obj.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL],
         );
         return (
           <ul className="list-group pf-u-mb-xl">
@@ -59,7 +80,9 @@ const BuildsOverview: React.FC<BuildsOverviewProps> = ({ item: { builds, buildRu
                         referenceForModel(BuildModel),
                         build.metadata.name,
                         build.metadata.namespace,
-                      )}/buildruns`}
+                      )}/buildruns?labels=${BUILDRUN_TO_RESOURCE_MAP_LABEL}=${
+                        obj.metadata?.labels?.[BUILDRUN_TO_RESOURCE_MAP_LABEL]
+                      }`}
                     >
                       {t('shipwright-plugin~View all {{buildRunsLength}}', {
                         buildRunsLength: buildRunsforBuild.length,
@@ -70,10 +93,15 @@ const BuildsOverview: React.FC<BuildsOverviewProps> = ({ item: { builds, buildRu
 
                 <FlexItem>
                   {buildRunsforBuild.length === 0 ? (
-                    <StartBuildButton build={build} namespace={build.metadata.namespace} />
+                    <StartBuildButton
+                      build={build}
+                      resource={obj}
+                      namespace={build.metadata.namespace}
+                    />
                   ) : (
                     <TriggerLastBuildButton
                       buildRuns={buildRunsforBuild}
+                      resource={obj}
                       namespace={build.metadata.namespace}
                     />
                   )}
