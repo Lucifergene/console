@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: aut-shipwright-build
+  name: sw-deployment-ko-build
+  labels:
+    app.kubernetes.io/part-of: sw-deployment-ko-build
+spec:
+  selector:
+    matchLabels:
+      app: sw-deployment-ko-build
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sw-deployment-ko-build
+    spec:
+      containers:
+        - name: container
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/build-examples/sw-deployment-example:latest
+---
+apiVersion: shipwright.io/v1alpha1
+kind: Build
+metadata:
+  namespace: aut-shipwright-build
+  name: ko-build
+spec:
+  paramValues:
+    - name: go-flags
+      value: "-v -mod=vendor -ldflags=-w"
+    - name: go-version
+      value: "1.17"
+    - name: package-directory
+      value: ./cmd/shipwright-build-controller
+  source:
+    url: https://github.com/shipwright-io/build
+  strategy:
+    name: ko
+    kind: BuildStrategy
+  output:
+    image: image-registry.openshift-image-registry.svc:5000/build-examples/ko-build
+---
+apiVersion: shipwright.io/v1alpha1
+kind: BuildRun
+metadata:
+  namespace: aut-shipwright-build
+  generateName: ko-build-
+  labels:
+    app.kubernetes.io/part-of: sw-deployment-ko-build
+spec:
+  buildRef:
+    name: ko-build

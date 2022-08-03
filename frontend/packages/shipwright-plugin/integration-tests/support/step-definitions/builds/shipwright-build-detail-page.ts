@@ -65,7 +65,7 @@ When('user clicks on {string} tab', (tab: string) => {
 When('user clicks on Event tab', () => {
   cy.get(buildPO.eventTab)
     .should('be.visible')
-    .click();
+    .click(); 
 });
 
 When('user will see Shipwright Builds', () => {
